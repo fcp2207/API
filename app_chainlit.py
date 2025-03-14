@@ -15,14 +15,14 @@ async def on_message(message: cl.Message):
         timeout_value = min(120, 10 + (num_tokens * 2))  
 
         # 🔹 Muestra mensaje de espera dinámico
-        msg = await cl.Message(content="⏳ Generando respuesta, por favor espera...").send()
+        msg = await cl.Message(content="⏳ Generando respuesta con GPU, por favor espera...").send()
         
         response = requests.post(HF_API_URL, json=payload, timeout=timeout_value)
         response.raise_for_status()
         result = response.json().get("response", "⚠️ Error: Respuesta no válida")
 
         # 🔹 Actualiza el mensaje con la respuesta real
-        msg.update(content=result)
+        await msg.update(content=result)
 
         # ✅ Manejo de feedback con `AskUserMessage`
         feedback = await cl.AskUserMessage(
@@ -37,6 +37,7 @@ async def on_message(message: cl.Message):
 
     except requests.exceptions.RequestException as e:
         await cl.Message(content=f"❌ Error en la API: {str(e)}").send()
+
 
 
 
