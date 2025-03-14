@@ -11,14 +11,13 @@ async def on_message(message: cl.Message):
     payload = {"input_text": message.content}
     
     try:
-        response = requests.post(HF_API_URL, json=payload, timeout=10)
+        response = requests.post(HF_API_URL, json=payload, timeout=30)  # ⏳ Aumentar timeout a 30s
         response.raise_for_status()
         result = response.json().get("response", "⚠️ Error: Respuesta no válida")
         
-        # 🔹 Muestra la respuesta y agrega botones
+        # 🔹 Muestra la respuesta y agrega botones de feedback
         msg = await cl.Message(content=result).send()
 
-        # ✅ Manejo de feedback con `@cl.step`
         feedback = await cl.AskUserMessage(
             content="¿Cómo fue la respuesta?",
             options=["👍 Buena respuesta", "👎 Respuesta incorrecta"]
@@ -31,6 +30,7 @@ async def on_message(message: cl.Message):
 
     except requests.exceptions.RequestException as e:
         await cl.Message(content=f"❌ Error en la API: {str(e)}").send()
+
 
 
 
