@@ -5,17 +5,17 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-# ✅ Configuración de variables y modelo
-MODEL_REPO = "fcp2207/Modelo_Phi2_fusionado"  # Asegúrate de que este es el correcto
-HF_CACHE = "/tmp/huggingface_cache"
-FEEDBACK_FILE = "/tmp/feedback.json"
+# ✅ Configuración del modelo
+MODEL_REPO = "fcp2207/Modelo_Phi2_fusionado"
+CACHE_DIR = "/app/cache"
+FEEDBACK_FILE = "/app/cache/feedback.json"
 
 # ✅ Configurar caché en Railway
-os.environ["HF_HOME"] = HF_CACHE
-os.makedirs(HF_CACHE, exist_ok=True)
+os.environ["HF_HOME"] = CACHE_DIR
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 # ✅ Inicializar FastAPI
-app = FastAPI(title="Phi-2 API", description="API optimizada en Railway", version="2.0.1")
+app = FastAPI(title="Phi-2 API", description="API optimizada en Railway", version="2.0.2")
 
 # ✅ Modelo de entrada
 class InputData(BaseModel):
@@ -34,16 +34,16 @@ def save_feedback(feedback):
 
 user_feedback = load_feedback()
 
-# ✅ Cargar modelo con optimización de memoria
+# ✅ Cargar modelo con optimización de memoria en Railway
 try:
     print("🔄 Descargando y cargando el modelo en Railway...")
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_REPO, 
         torch_dtype=torch.float16, 
         device_map="auto", 
-        cache_dir=HF_CACHE
+        cache_dir=CACHE_DIR
     )
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_REPO, cache_dir=HF_CACHE)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_REPO, cache_dir=CACHE_DIR)
 
     # ✅ Asegurar que haya un token de padding
     if tokenizer.pad_token is None:
@@ -84,3 +84,4 @@ async def predict(data: InputData):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error de inferencia: {str(e)}")
+

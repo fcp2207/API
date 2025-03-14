@@ -12,12 +12,11 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ✅ Crear directorios con permisos adecuados
-RUN mkdir -p /tmp/huggingface_cache && chmod -R 777 /tmp
+RUN mkdir -p /app/cache && chmod -R 777 /app/cache
 
 # ✅ Exponer el puerto 8080 (obligatorio en Railway)
 EXPOSE 8080
 
 # ✅ Ejecutar la API FastAPI en Railway
 CMD uvicorn app_fastapi:app --host 0.0.0.0 --port 8080
-
 
