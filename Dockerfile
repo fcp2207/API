@@ -20,3 +20,4 @@ EXPOSE 8080
 # ✅ Ejecutar la API FastAPI en Railway
 CMD uvicorn app_fastapi:app --host 0.0.0.0 --port 8080
 
+

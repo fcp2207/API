@@ -6,16 +6,16 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 # ✅ Configuración de variables y modelo
-MODEL_REPO = "fcp2207/Modelo_Phi2_fusionado"
+MODEL_REPO = "fcp2207/Modelo_Phi2_fusionado"  # Asegúrate de que este es el correcto
 HF_CACHE = "/tmp/huggingface_cache"
 FEEDBACK_FILE = "/tmp/feedback.json"
 
-# ✅ Configurar el caché para Railway
+# ✅ Configurar caché en Railway
 os.environ["HF_HOME"] = HF_CACHE
 os.makedirs(HF_CACHE, exist_ok=True)
 
-# ✅ Inicializar FastAPI en Railway (Puerto 8080)
-app = FastAPI(title="Phi-2 API", description="API optimizada en Railway", version="2.0.0")
+# ✅ Inicializar FastAPI
+app = FastAPI(title="Phi-2 API", description="API optimizada en Railway", version="2.0.1")
 
 # ✅ Modelo de entrada
 class InputData(BaseModel):
@@ -34,11 +34,14 @@ def save_feedback(feedback):
 
 user_feedback = load_feedback()
 
-# ✅ Cargar el modelo con optimización de RAM
+# ✅ Cargar modelo con optimización de memoria
 try:
     print("🔄 Descargando y cargando el modelo en Railway...")
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL_REPO, torch_dtype=torch.float16, device_map="auto", cache_dir=HF_CACHE
+        MODEL_REPO, 
+        torch_dtype=torch.float16, 
+        device_map="auto", 
+        cache_dir=HF_CACHE
     )
     tokenizer = AutoTokenizer.from_pretrained(MODEL_REPO, cache_dir=HF_CACHE)
 
@@ -49,10 +52,10 @@ try:
 
     print("✅ Modelo cargado correctamente en Railway.")
 except Exception as e:
-    print(f"❌ Error al cargar el modelo: {str(e)}")
+    print(f"❌ Error al cargar el modelo en Railway: {str(e)}")
     model, tokenizer = None, None
 
-# ✅ Analizador de sentimiento (opcional)
+# ✅ Analizador de sentimiento (Opcional)
 sentiment_analyzer = pipeline("sentiment-analysis")
 
 @app.get("/")
