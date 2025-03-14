@@ -5,22 +5,23 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-# ✅ Configuración del modelo
+# ✅ Configuración de variables y modelo
 MODEL_REPO = "fcp2207/Modelo_Phi2_fusionado"
 HF_CACHE = "/tmp/huggingface_cache"
 FEEDBACK_FILE = "/tmp/feedback.json"
 
+# ✅ Configurar el caché para Railway
 os.environ["HF_HOME"] = HF_CACHE
 os.makedirs(HF_CACHE, exist_ok=True)
 
-# ✅ Inicializar FastAPI en puerto 7861
-app = FastAPI(title="Phi-2 API", description="API optimizada con ajuste dinámico", version="1.6.2")
+# ✅ Inicializar FastAPI en Railway (Puerto 8080)
+app = FastAPI(title="Phi-2 API", description="API optimizada en Railway", version="2.0.0")
 
 # ✅ Modelo de entrada
 class InputData(BaseModel):
     input_text: str
 
-# ✅ Cargar feedback
+# ✅ Cargar feedback si existe
 def load_feedback():
     if os.path.exists(FEEDBACK_FILE):
         with open(FEEDBACK_FILE, "r") as f:
@@ -33,27 +34,30 @@ def save_feedback(feedback):
 
 user_feedback = load_feedback()
 
-# ✅ Cargar modelo
+# ✅ Cargar el modelo con optimización de RAM
 try:
-    print("🔄 Cargando modelo desde Hugging Face...")
-    model = AutoModelForCausalLM.from_pretrained(MODEL_REPO, torch_dtype="auto", device_map="auto", cache_dir=HF_CACHE)
+    print("🔄 Descargando y cargando el modelo en Railway...")
+    model = AutoModelForCausalLM.from_pretrained(
+        MODEL_REPO, torch_dtype=torch.float16, device_map="auto", cache_dir=HF_CACHE
+    )
     tokenizer = AutoTokenizer.from_pretrained(MODEL_REPO, cache_dir=HF_CACHE)
 
+    # ✅ Asegurar que haya un token de padding
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
         model.config.pad_token_id = tokenizer.eos_token_id
 
-    print("✅ Modelo cargado correctamente.")
+    print("✅ Modelo cargado correctamente en Railway.")
 except Exception as e:
     print(f"❌ Error al cargar el modelo: {str(e)}")
     model, tokenizer = None, None
 
-# ✅ Analizador de sentimiento
+# ✅ Analizador de sentimiento (opcional)
 sentiment_analyzer = pipeline("sentiment-analysis")
 
 @app.get("/")
 def home():
-    return {"message": "API con modelo fusionado ejecutándose 🚀"}
+    return {"message": "API con modelo fusionado ejecutándose en Railway 🚀"}
 
 @app.post("/predict/")
 async def predict(data: InputData):
@@ -76,4 +80,4 @@ async def predict(data: InputData):
         return {"response": tokenizer.decode(outputs[0], skip_special_tokens=True)}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Error de inferencia: {str(e)}")
