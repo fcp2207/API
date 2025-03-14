@@ -16,10 +16,15 @@ async def on_message(message: cl.Message):
 
         # 🔹 Muestra mensaje de espera dinámico
         msg = await cl.Message(content="⏳ Generando respuesta con GPU, por favor espera...").send()
-        
+
+        # 🔹 Llamamos a la API y mostramos logs
+        print(f"📡 Enviando solicitud a la API con timeout={timeout_value} segundos...")
         response = requests.post(HF_API_URL, json=payload, timeout=timeout_value)
-        response.raise_for_status()
+        response.raise_for_status()  # Captura cualquier error HTTP
         result = response.json().get("response", "⚠️ Error: Respuesta no válida")
+
+        # 🔹 Mostrar logs en consola
+        print(f"✅ Respuesta recibida: {result}")
 
         # 🔹 Actualiza el mensaje con la respuesta real
         await msg.update(content=result)
@@ -36,7 +41,9 @@ async def on_message(message: cl.Message):
             requests.post(HF_FEEDBACK_URL, json={"feedback": "negativo"})
 
     except requests.exceptions.RequestException as e:
-        await cl.Message(content=f"❌ Error en la API: {str(e)}").send()
+        print(f"❌ Error en la API: {e}")
+        await msg.update(content=f"❌ Error en la API: {e}")
+
 
 
 
