@@ -7,16 +7,21 @@ HF_API_URL = "https://fcp2207-fusion-modelo-phi2-docker.hf.space/predict/"
 HF_FEEDBACK_URL = "https://fcp2207-fusion-modelo-phi2-docker.hf.space/feedback/"
 
 @cl.on_message
-async def on_message(message: cl.Message):  # ✅ Ahora `message` es un objeto de Chainlit
-    payload = {"input_text": message.content}  # ✅ Usa `message.content` en lugar de `message`
+async def on_message(message):
+    """ Maneja los mensajes en Chainlit y llama a la API. """
+    
+    # 🔹 Asegurar compatibilidad con versiones de Chainlit
+    user_message = message.content if isinstance(message, cl.Message) else message  # ✅ Compatibilidad para versiones nuevas y antiguas
+    
+    payload = {"input_text": user_message}
 
     try:
-        num_tokens = len(message.content.split())
+        num_tokens = len(user_message.split())
         timeout_value = min(120, 10 + (num_tokens * 2))
 
-        # 🔹 Muestra mensaje de espera dinámico (asegurando que `msg` sea un objeto `cl.Message`)
+        # 🔹 Muestra mensaje de espera
         msg = cl.Message(content="⏳ Generando respuesta con GPU, por favor espera...")
-        await msg.send()  # ✅ Enviar el mensaje correctamente antes de actualizarlo
+        await msg.send()  # ✅ Enviar mensaje correctamente antes de actualizarlo
 
         # 🔹 Llamamos a la API y mostramos logs
         print(f"📡 Enviando solicitud a la API con timeout={timeout_value} segundos...")
@@ -27,7 +32,7 @@ async def on_message(message: cl.Message):  # ✅ Ahora `message` es un objeto d
         # 🔹 Mostrar logs en consola
         print(f"✅ Respuesta recibida: {result}")
 
-        # 🔹 Actualiza el mensaje con la respuesta real (ahora correctamente)
+        # 🔹 Actualiza el mensaje con la respuesta real
         msg.content = result  # ✅ Se actualiza el contenido del mensaje
         await msg.update()  # ✅ Se usa `.update()` sin argumentos en Chainlit 0.7.0+
 
