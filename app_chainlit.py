@@ -29,31 +29,26 @@ async def on_message(message: cl.Message):
         # 🔹 Actualiza el mensaje con la respuesta real
         await msg.update(content=result)
 
-        # ✅ Manejo de feedback con `actions=` en lugar de `choices=`
-        feedback_msg = await cl.Message(
+        # ✅ Manejo de feedback usando `AskUserMessage`
+        feedback = await cl.AskUserMessage(
             content="¿Cómo fue la respuesta?",
             actions=[
-                cl.Action(name="👍", label="Buena respuesta", value={"feedback": "positivo", "response": result}),
-                cl.Action(name="👎", label="Respuesta incorrecta", value={"feedback": "negativo", "response": result})
+                {"name": "positivo", "label": "👍 Buena respuesta"},
+                {"name": "negativo", "label": "👎 Respuesta incorrecta"}
             ]
         ).send()
+
+        # 🔹 Enviar feedback a la API
+        if feedback:
+            feedback_data = {"feedback": feedback["name"], "response": result}
+            requests.post(HF_FEEDBACK_URL, json=feedback_data)
+
+            # 🔹 Mostrar mensaje de confirmación
+            await cl.Message(content="✅ ¡Gracias por tu feedback! Seguiremos mejorando.").send()
 
     except requests.exceptions.RequestException as e:
         print(f"❌ Error en la API: {e}")
         await msg.update(content=f"❌ Error en la API: {e}")
-
-@cl.on_action("👍")
-async def handle_positive_feedback(action: cl.Action):
-    """Envía feedback positivo a la API."""
-    requests.post(HF_FEEDBACK_URL, json=action.value)
-    await cl.Message(content="✅ ¡Gracias por tu feedback! Seguiremos mejorando.").send()
-
-@cl.on_action("👎")
-async def handle_negative_feedback(action: cl.Action):
-    """Envía feedback negativo a la API."""
-    requests.post(HF_FEEDBACK_URL, json=action.value)
-    await cl.Message(content="⚠️ ¡Gracias! Ajustaremos el modelo para mejorar las respuestas.").send()
-
 
 
 
