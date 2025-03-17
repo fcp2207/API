@@ -30,17 +30,17 @@ async def on_message(message: cl.Message):
         msg.content = result
         await msg.update()
 
-        # ✅ Manejo de feedback con `AskUserMessage`
+        # ✅ Manejo de feedback con `buttons=` en lugar de `actions=`
         feedback = await cl.AskUserMessage(
             content="¿Cómo fue la respuesta?",
-            actions=[
-                {"name": "positivo", "label": "👍 Buena respuesta"},
-                {"name": "negativo", "label": "👎 Respuesta incorrecta"}
+            buttons=[
+                {"name": "positivo", "value": "positivo", "label": "👍 Buena respuesta"},
+                {"name": "negativo", "value": "negativo", "label": "👎 Respuesta incorrecta"}
             ]
         ).send()
 
         if feedback:
-            feedback_data = {"feedback": feedback["name"], "response": result}
+            feedback_data = {"feedback": feedback["value"], "response": result}
             requests.post(HF_FEEDBACK_URL, json=feedback_data)
 
             # 🔹 Mostrar mensaje de confirmación
