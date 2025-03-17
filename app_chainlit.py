@@ -26,7 +26,7 @@ async def on_message(message):
         print(f"📡 Enviando solicitud a la API con timeout={timeout_value} segundos...")
         response = requests.post(HF_API_URL, json=payload, timeout=timeout_value)
         response.raise_for_status()  
-        result = response.json().get("response", ⚠️ Error: Respuesta no válida")
+        result = response.json().get("response", "⚠️ Error: Respuesta no válida")
 
         # 🔹 Mostrar logs en consola
         print(f"✅ Respuesta recibida: {result}")
@@ -39,6 +39,7 @@ async def on_message(message):
         print(f"❌ Error en la API: {e}")
         msg.content = f"❌ Error en la API: {e}"
         await msg.update()
+
 
 
 
