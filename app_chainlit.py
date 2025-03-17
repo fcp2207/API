@@ -30,17 +30,17 @@ async def on_message(message: cl.Message):
         msg.content = result
         await msg.update()
 
-        # ✅ Manejo de feedback con `choices=` en lugar de `buttons=`
-        feedback = await cl.AskUserMessage(
+        # ✅ Manejo de feedback usando `AskUserActionMessage`
+        feedback = await cl.AskUserActionMessage(
             content="¿Cómo fue la respuesta?",
-            choices=[
-                {"name": "positivo", "value": "positivo"},
-                {"name": "negativo", "value": "negativo"}
+            actions=[
+                cl.Action(name="positivo", label="👍 Buena respuesta", value="positivo"),
+                cl.Action(name="negativo", label="👎 Respuesta incorrecta", value="negativo")
             ]
         ).send()
 
         if feedback:
-            feedback_data = {"feedback": feedback["value"], "response": result}
+            feedback_data = {"feedback": feedback.value, "response": result}
             requests.post(HF_FEEDBACK_URL, json=feedback_data)
 
             # 🔹 Mostrar mensaje de confirmación
@@ -50,7 +50,5 @@ async def on_message(message: cl.Message):
         print(f"❌ Error en la API: {e}")
         msg.content = f"❌ Error en la API: {e}"
         await msg.update()
-
-
 
 
