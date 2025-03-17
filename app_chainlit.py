@@ -7,15 +7,16 @@ HF_API_URL = "https://fcp2207-fusion-modelo-phi2-docker.hf.space/predict/"
 HF_FEEDBACK_URL = "https://fcp2207-fusion-modelo-phi2-docker.hf.space/feedback/"
 
 @cl.on_message
-async def on_message(message: str):  # ✅ Ahora `message` es un string
-    payload = {"input_text": message}
+async def on_message(message: cl.Message):  # ✅ Ahora `message` es un objeto de Chainlit
+    payload = {"input_text": message.content}  # ✅ Usa `message.content` en lugar de `message`
 
     try:
-        num_tokens = len(message.split())
+        num_tokens = len(message.content.split())
         timeout_value = min(120, 10 + (num_tokens * 2))
 
-        # 🔹 Muestra mensaje de espera dinámico
-        msg = await cl.Message(content="⏳ Generando respuesta con GPU, por favor espera...").send()
+        # 🔹 Muestra mensaje de espera dinámico (asegurando que `msg` sea un objeto `cl.Message`)
+        msg = cl.Message(content="⏳ Generando respuesta con GPU, por favor espera...")
+        await msg.send()  # ✅ Enviar el mensaje correctamente antes de actualizarlo
 
         # 🔹 Llamamos a la API y mostramos logs
         print(f"📡 Enviando solicitud a la API con timeout={timeout_value} segundos...")
@@ -26,8 +27,9 @@ async def on_message(message: str):  # ✅ Ahora `message` es un string
         # 🔹 Mostrar logs en consola
         print(f"✅ Respuesta recibida: {result}")
 
-        # 🔹 Actualiza el mensaje con la respuesta real
-        await msg.update(content=result)
+        # 🔹 Actualiza el mensaje con la respuesta real (ahora correctamente)
+        msg.content = result  # ✅ Se actualiza el contenido del mensaje
+        await msg.update()  # ✅ Se usa `.update()` sin argumentos en Chainlit 0.7.0+
 
         # ✅ Manejo de feedback con `cl.AskUserMessage`
         feedback = await cl.AskUserMessage(
@@ -47,7 +49,9 @@ async def on_message(message: str):  # ✅ Ahora `message` es un string
 
     except requests.exceptions.RequestException as e:
         print(f"❌ Error en la API: {e}")
-        await msg.update(content=f"❌ Error en la API: {e}")
+        msg.content = f"❌ Error en la API: {e}"
+        await msg.update()
+
 
 
 
