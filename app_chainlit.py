@@ -26,8 +26,9 @@ async def on_message(message: cl.Message):
         # 🔹 Mostrar logs en consola
         print(f"✅ Respuesta recibida: {result}")
 
-        # 🔹 Actualiza el mensaje con la respuesta real
-        await msg.update(content=result)
+        # 🔹 ACTUALIZACIÓN CORRECTA DEL MENSAJE EN CHAINLIT
+        msg.content = result  # 🔹 Se actualiza el contenido del mensaje
+        await msg.update()  # 🔹 Ahora se actualiza correctamente en Chainlit
 
         # ✅ Manejo de feedback con `AskUserMessage`
         feedback = await cl.AskUserMessage(
@@ -42,7 +43,9 @@ async def on_message(message: cl.Message):
 
     except requests.exceptions.RequestException as e:
         print(f"❌ Error en la API: {e}")
-        await msg.update(content=f"❌ Error en la API: {e}")
+        msg.content = f"❌ Error en la API: {e}"
+        await msg.update()
+
 
 
 
