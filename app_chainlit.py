@@ -9,10 +9,10 @@ HF_FEEDBACK_URL = "https://fcp2207-fusion-modelo-phi2-docker.hf.space/feedback/"
 @cl.on_message
 async def on_message(message: cl.Message):
     payload = {"input_text": message.content}
-    
+
     try:
-        num_tokens = len(message.content.split())  
-        timeout_value = min(120, 10 + (num_tokens * 2))  
+        num_tokens = len(message.content.split())
+        timeout_value = min(120, 10 + (num_tokens * 2))
 
         # 🔹 Muestra mensaje de espera dinámico
         msg = await cl.Message(content="⏳ Generando respuesta con GPU, por favor espera...").send()
@@ -27,9 +27,10 @@ async def on_message(message: cl.Message):
         print(f"✅ Respuesta recibida: {result}")
 
         # 🔹 Actualiza el mensaje con la respuesta real
-        await msg.update(content=result)
+        msg.content = result
+        await msg.update()
 
-        # ✅ Manejo de feedback usando `AskUserMessage`
+        # ✅ Manejo de feedback con `AskUserMessage`
         feedback = await cl.AskUserMessage(
             content="¿Cómo fue la respuesta?",
             actions=[
@@ -38,7 +39,6 @@ async def on_message(message: cl.Message):
             ]
         ).send()
 
-        # 🔹 Enviar feedback a la API
         if feedback:
             feedback_data = {"feedback": feedback["name"], "response": result}
             requests.post(HF_FEEDBACK_URL, json=feedback_data)
@@ -48,7 +48,9 @@ async def on_message(message: cl.Message):
 
     except requests.exceptions.RequestException as e:
         print(f"❌ Error en la API: {e}")
-        await msg.update(content=f"❌ Error en la API: {e}")
+        msg.content = f"❌ Error en la API: {e}"
+        await msg.update()
+
 
 
 
