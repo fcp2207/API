@@ -36,17 +36,17 @@ async def on_message(message):
         msg.content = result  # ✅ Se actualiza el contenido del mensaje
         await msg.update()  # ✅ Se usa `.update()` sin argumentos en Chainlit 0.7.0+
 
-        # ✅ Manejo de feedback con `cl.AskUserMessage`
+        # ✅ Manejo de feedback con `choices=` en lugar de `actions=`
         feedback = await cl.AskUserMessage(
             content="¿Cómo fue la respuesta?",
-            actions=[
-                cl.Action(name="positivo", label="👍 Buena respuesta", value="positivo"),
-                cl.Action(name="negativo", label="👎 Respuesta incorrecta", value="negativo")
+            choices=[
+                "👍 Buena respuesta",
+                "👎 Respuesta incorrecta"
             ]
         ).send()
 
         if feedback:
-            feedback_data = {"feedback": feedback.value, "response": result}
+            feedback_data = {"feedback": "positivo" if feedback.content == "👍 Buena respuesta" else "negativo", "response": result}
             requests.post(HF_FEEDBACK_URL, json=feedback_data)
 
             # 🔹 Mostrar mensaje de confirmación
