@@ -30,12 +30,12 @@ async def on_message(message: cl.Message):
         msg.content = result
         await msg.update()
 
-        # ✅ Manejo de feedback con `buttons=` en lugar de `actions=`
+        # ✅ Manejo de feedback con `choices=` en lugar de `buttons=`
         feedback = await cl.AskUserMessage(
             content="¿Cómo fue la respuesta?",
-            buttons=[
-                {"name": "positivo", "value": "positivo", "label": "👍 Buena respuesta"},
-                {"name": "negativo", "value": "negativo", "label": "👎 Respuesta incorrecta"}
+            choices=[
+                {"name": "positivo", "value": "positivo"},
+                {"name": "negativo", "value": "negativo"}
             ]
         ).send()
 
